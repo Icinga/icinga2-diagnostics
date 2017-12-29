@@ -4,6 +4,13 @@
 # author: Thomas Widhalm <thomas.widhalm@icinga.com>
 # Original source: https://github.com/widhalmt/icinga2-diagnostics
 
+VERSION=0.0
+
+echo "### Icinga 2 Diagnostics ###"
+echo "# Version: ${VERSION}"
+echo "# Run on $(hostname) at $(date)"
+echo ""
+
 ### VARIABLES ###
 
 ## Static variables ##
