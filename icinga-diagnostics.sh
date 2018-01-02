@@ -155,24 +155,24 @@ function doc_os {
   then
     echo "Running on hardware or unknown hypervisor"
   else
-    if [ "$(echo ${VIRT} | head -1)" = "xen" ]
+    if [ "$(echo ${VIRT} | awk '{print $1}')" = "xen" ]
     then
-      if [ "$(echo ${VIRT} | tail -1)" = "xen-dom0" ]
+      if [ "$(echo ${VIRT} | awk '{print $2}')" = "xen-dom0" ]
       then
         VIRTUAL=false
       else
         VIRTUAL=true
         HYPERVISOR="Xen"
       fi
-    elif [ "$(echo ${VIRT} | head -1)" = "kvm" ]
+    elif [ "$(echo ${VIRT} | awk '{print $1}')" = "kvm" ]
     then
       VIRTUAL=true
       HYPERVISOR="KVM"
-    elif [ "$(echo ${VIRT} | head -1)" = "vmware" ]
+    elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmware" ]
     then
       VIRTUAL=true
       HYPERVISOR="VMware"
-    elif [ "$(echo ${VIRT} | head -1)" = "virtualbox" ]
+    elif [ "$(echo ${VIRT} | awk '{print $1}')" = "virtualbox" ]
     then
       # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
       VIRTUAL=true
