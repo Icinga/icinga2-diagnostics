@@ -151,7 +151,7 @@ function doc_os {
 
   VIRT=$(bash virt-what 2>/dev/null)
 
-  if [ -z ${VIRT} ]
+  if [ -z "${VIRT}" ]
   then
     echo "Running on hardware or unknown hypervisor"
   else
