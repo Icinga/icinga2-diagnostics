@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Icinga Diagnostics
 # Collect basic data about your Icinga 2 installation
 # author: Thomas Widhalm <thomas.widhalm@icinga.com>
@@ -36,7 +36,7 @@ fi
 
 ### Functions ###
 
-function show_help {
+show_help() {
   echo "
 
   Usage:
@@ -47,7 +47,7 @@ function show_help {
   exit 0
 }
 
-function check_service {
+check_service() {
   if [ "${SYSTEMD}" = "true" ]
   then
     systemctl is-active $1
@@ -56,12 +56,19 @@ function check_service {
   fi
 }
 
-function doc_icinga2 {
+doc_icinga2() {
   echo ""
   echo "Packages:"
   if [ "${OS}" = "REDHAT" ]
   then
-    for i in $(rpm -qa | grep icinga); do (rpm -qi $i | grep ^Name | cut -d: -f2); (rpm -qi $i | grep Version); (if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" == "c6e319c334410682" ]; then echo "Signed with Icinga key"; else echo "Not signed with Icinga Key, might be original anyway"; fi) ; done
+    for i in $(rpm -qa | grep icinga); do
+      (rpm -qi $i | grep ^Name | cut -d: -f2)
+      (rpm -qi $i | grep Version)
+      (if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "c6e319c334410682" ]; then
+         echo "Signed with Icinga key";
+       else echo "Not signed with Icinga Key, might be original anyway";
+       fi)
+    done
   else
     echo "Can not query packages on ${OS}"
   fi
@@ -83,7 +90,7 @@ function doc_icinga2 {
 
 }
 
-function doc_icingaweb2 {
+doc_icingaweb2() {
 
   echo ""
   echo "Packages:"
@@ -108,10 +115,10 @@ function doc_icingaweb2 {
 
 }
 
-function doc_firewall {
+doc_firewall() {
   echo -n "Firewall: "
 
-  if [ "$1" == "f" ]
+  if [ "$1" = "f" ]
   then  
     if [ "${RUNASROOT}" = "true" ]
     then
@@ -129,7 +136,7 @@ function doc_firewall {
   fi 
 }
 
-function doc_os {
+doc_os() {
 
   echo ""
   echo "## OS ##"
@@ -218,7 +225,7 @@ function doc_os {
   doc_firewall
 }
 
-function create_tarball {
+create_tarball() {
   OUTPUTDIR=$(mktemp -dt ic_diag.XXXXX)
   # run this diagnostics script again and print it's output into the tarball
   if [ "${FULL}" = true ]
