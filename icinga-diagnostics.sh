@@ -172,6 +172,11 @@ function doc_os {
     then
       VIRTUAL=true
       HYPERVISOR="VMware"
+    elif [ "$(echo ${VIRT} | head -1)" = "virtualbox" ]
+    then
+      # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
+      VIRTUAL=true
+      HYPERVISOR="VirtualBox"
     else
       VIRTUAL=false
     fi
