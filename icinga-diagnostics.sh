@@ -72,9 +72,16 @@ function doc_icinga2 {
   echo "Features:"
   icinga2 feature list
 
+  SAVEIFS=${IFS}
+  IFS=$(echo -en "\n\b")
   echo ""
   echo "Zones and Endpoints:"
-  for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2) ; do (echo $i ); (icinga2 object list --type Zone --name $i | grep -e 'endpoints =' -e 'parent =' -e 'global =' | grep -v -e '= null' -e '= false' -e '= ""') done
+  for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2)
+  do
+    echo $i
+    icinga2 object list --type Zone --name $i | grep -e 'endpoints =' -e 'parent =' -e 'global =' | grep -v -e '= null' -e '= false' -e '= ""'
+  done
+  IFS=${SAVEIFS}
 
   echo ""
   echo "Check intervals:"
