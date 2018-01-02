@@ -143,7 +143,7 @@ function doc_os {
   echo ""
   echo -n "OS Version: "
 
-  if [ -n "$(cat /etc/redhat-release)" ]
+  if [ -f "/etc/redhat-release" ]
   then
     QUERYPACKAGE="rpm -q"
     OS="REDHAT"
