@@ -168,6 +168,10 @@ function doc_os {
     then
       VIRTUAL=true
       HYPERVISOR="KVM"
+    elif [ "$(echo ${VIRT} | head -1)" = "vmware" ]
+    then
+      VIRTUAL=true
+      HYPERVISOR="VMware"
     else
       VIRTUAL=false
     fi
