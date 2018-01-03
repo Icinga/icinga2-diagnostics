@@ -37,6 +37,20 @@ then
   SYSTEMD=true
 fi
 
+if [ -f "/etc/redhat-release" ]
+then
+  QUERYPACKAGE="rpm -q"
+  OS="REDHAT"
+  OSVERSION="$(cat /etc/redhat-release)"
+elif [ -f "/etc/debian_version" ]
+then
+  QUERYPACKAGE="dpkg -l"
+  OS="$(grep ^NAME /etc/os-release | cut -d\" -f2)"
+  OSVERSION="${OS} $(cat /etc/debian_version)"
+else
+  lsb_release -irs
+fi
+
 ### Functions ###
 
 function show_help {
@@ -173,15 +187,7 @@ function doc_os {
   echo ""
   echo -n "OS Version: "
 
-  if [ -f "/etc/redhat-release" ]
-  then
-    QUERYPACKAGE="rpm -q"
-    OS="REDHAT"
-    cat /etc/redhat-release
-  else
-    lsb_release -irs
-  fi
-
+  echo ${OSVERSION}
 
   echo -n "Hypervisor: "
 
