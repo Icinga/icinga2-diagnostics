@@ -19,6 +19,7 @@ OPTSTR="fht"
 
 TIMESTAMP=$(date +%Y%m%d)
 
+# The GnuPG key used for signing packages in the Icinga repository
 ICINGAKEY="c6e319c334410682"
 
 ## Computed variables ##
@@ -87,6 +88,8 @@ function doc_icinga2 {
   echo "Features:"
   icinga2 feature list
 
+  # change the IFS variable to have whitespaces not split up items in a `for i in` loop.
+  # this is to be used because some zone-names might contain whitespaces
   SAVEIFS=${IFS}
   IFS=$(echo -en "\n\b")
   echo ""
@@ -99,6 +102,10 @@ function doc_icinga2 {
   IFS=${SAVEIFS}
 
   echo ""
+  # count how often every check interval is used. This helps with getting an overview and finding misconfigurations
+  # * are there lots of different intervals? -> Users might get confused
+  # * very high or very low intervals -> could mean messed up units (e.g.: s instead of m)
+  # * many different intervals? -> could lead to problems with graphs
   echo "Check intervals:"
   icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn
   icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn
@@ -122,7 +129,15 @@ function doc_icingaweb2 {
   echo "Icinga Web 2 Modules:"
   # Add options for modules in other directories
   icingacli module list
-  for i in $(icingacli module list | grep -v ^MODULE | awk '{print $1}'); do if [ -d /usr/share/icingaweb2/modules/$i/.git ]; then echo "$i via git - $(cd /usr/share/icingaweb2/modules/$i && git log -1 --format=\"%H\")" ; else echo "$i via release archive/package";  fi ; done
+  for i in $(icingacli module list | grep -v ^MODULE | awk '{print $1}')
+  do
+    if [ -d /usr/share/icingaweb2/modules/$i/.git ]
+    then
+      echo "$i via git - $(cd /usr/share/icingaweb2/modules/$i && git log -1 --format=\"%H\")"
+    else
+      echo "$i via release archive/package"
+    fi
+  done
 
   echo ""
   echo "Icinga Web 2 commandtransport configuration:"
