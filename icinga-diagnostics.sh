@@ -19,6 +19,8 @@ OPTSTR="fht"
 
 TIMESTAMP=$(date +%Y%m%d)
 
+ICINGAKEY="c6e319c334410682"
+
 ## Computed variables ##
 
 if [ "$(id -u)" != "0" ]; then
@@ -58,10 +60,23 @@ function check_service {
 
 function doc_icinga2 {
   echo ""
+
+  # query all installed packages with "icinga" in their name
+  # check every package whether it was signed with the GnuPG key of the icinga team
   echo "Packages:"
   if [ "${OS}" = "REDHAT" ]
   then
-    for i in $(rpm -qa | grep icinga); do (rpm -qi $i | grep ^Name | cut -d: -f2); (rpm -qi $i | grep Version); (if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" == "c6e319c334410682" ]; then echo "Signed with Icinga key"; else echo "Not signed with Icinga Key, might be original anyway"; fi) ; done
+    for i in $(rpm -qa | grep icinga)
+    do 
+      rpm -qi $i | grep ^Name | cut -d: -f2
+      rpm -qi $i | grep Version
+      if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" == "${ICINGAKEY}" ]
+      then
+        echo "Signed with Icinga key"
+      else
+        echo "Not signed with Icinga Key, might be original anyway"
+      fi
+    done
   else
     echo "Can not query packages on ${OS}"
   fi
