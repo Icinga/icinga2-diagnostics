@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # Icinga Diagnostics
 # Collect basic data about your Icinga 2 installation
 # author: Thomas Widhalm <thomas.widhalm@icinga.com>
@@ -18,6 +18,7 @@ echo ""
 OPTSTR="fht"
 
 TIMESTAMP=$(date +%Y%m%d)
+UNAME_S=$(uname -s)
 
 # The GnuPG key used for signing packages in the Icinga repository
 ICINGAKEY="c6e319c334410682"
@@ -47,13 +48,19 @@ then
   QUERYPACKAGE="dpkg -l"
   OS="$(grep ^NAME /etc/os-release | cut -d\" -f2)"
   OSVERSION="${OS} $(cat /etc/debian_version)"
+elif [ "${UNAME_S}" = "FreeBSD" ]
+then
+  QUERYPACKAGE="pkg info"
+  OS="${UNAME_S}"
+  PREFIX="/usr/local"
+  uname -srm 
 else
   lsb_release -irs
 fi
 
 ### Functions ###
 
-function show_help {
+show_help() {
   echo "
 
   Usage:
@@ -64,7 +71,7 @@ function show_help {
   exit 0
 }
 
-function check_service {
+check_service() {
   if [ "${SYSTEMD}" = "true" ]
   then
     systemctl is-active $1
@@ -73,28 +80,29 @@ function check_service {
   fi
 }
 
-function doc_icinga2 {
+doc_icinga2() {
   echo ""
 
   # query all installed packages with "icinga" in their name
   # check every package whether it was signed with the GnuPG key of the icinga team
   echo "Packages:"
-  if [ "${OS}" = "REDHAT" ]
-  then
+  case "${OS}" in
+    REDHAT)
     for i in $(rpm -qa | grep icinga)
-    do 
+    do
       rpm -qi $i | grep ^Name | cut -d: -f2
       rpm -qi $i | grep Version
-      if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" == "${ICINGAKEY}" ]
+      if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "${ICINGAKEY}" ]
       then
-        echo "Signed with Icinga key"
+        echo "Signed with Icinga key";
       else
-        echo "Not signed with Icinga Key, might be original anyway"
+        echo "Not signed with Icinga Key, might be original anyway";
       fi
     done
-  else
-    echo "Can not query packages on ${OS}"
-  fi
+    ;;
+    FreeBSD) ${QUERYPACKAGE} -x icinga ;;
+    *) echo "Can not query packages on ${OS}" ;;
+  esac
 
   # rpm -q --queryformat '%|DSAHEADER?{%{DSAHEADER:pgpsig}}:{%|RSAHEADER?{%{RSAHEADER:pgpsig}}:{%|SIGGPG?{%{SIGGPG:pgpsig}}:{%|SIGPGP?{%{SIGPGP:pgpsig}}:{(none)}|}|}|}|\n\' icinga2
 
@@ -105,7 +113,7 @@ function doc_icinga2 {
   # change the IFS variable to have whitespaces not split up items in a `for i in` loop.
   # this is to be used because some zone-names might contain whitespaces
   SAVEIFS=${IFS}
-  IFS=$(echo -en "\n\b")
+  IFS=$(printf "\n\b")
   echo ""
   echo "Zones and Endpoints:"
   for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2)
@@ -126,12 +134,19 @@ function doc_icinga2 {
 
 }
 
-function doc_icingaweb2 {
+doc_icingaweb2() {
 
   echo ""
   echo "Packages:"
   ${QUERYPACKAGE} icingaweb2
-  ${QUERYPACKAGE} php
+  if [ "${UNAME_S}" = "FreeBSD" ]; then
+    ${QUERYPACKAGE} -x php
+    ${QUERYPACKAGE} -x apache
+    ${QUERYPACKAGE} -x nginx
+    ${QUERYPACKAGE} -g '*sql*-server'
+  else
+    ${QUERYPACKAGE} php
+  fi
   if [ "${OS}" = "REDHAT" ]
   then
     ${QUERYPACKAGE} httpd
@@ -145,9 +160,9 @@ function doc_icingaweb2 {
   icingacli module list
   for i in $(icingacli module list | grep -v ^MODULE | awk '{print $1}')
   do
-    if [ -d /usr/share/icingaweb2/modules/$i/.git ]
+    if [ -d ${PREFIX}/usr/share/icingaweb2/modules/$i/.git ]
     then
-      echo "$i via git - $(cd /usr/share/icingaweb2/modules/$i && git log -1 --format=\"%H\")"
+      echo "$i via git - $(cd ${PREFIX}/usr/share/icingaweb2/modules/$i && git log -1 --format=\"%H\")"
     else
       echo "$i via release archive/package"
     fi
@@ -155,18 +170,25 @@ function doc_icingaweb2 {
 
   echo ""
   echo "Icinga Web 2 commandtransport configuration:"
-  cat /etc/icingaweb2/modules/monitoring/commandtransports.ini
+  cat ${PREFIX}/etc/icingaweb2/modules/monitoring/commandtransports.ini
 
 }
 
-function doc_firewall {
+doc_firewall() {
   echo -n "Firewall: "
 
-  if [ "$1" == "f" ]
+  if [ "$1" = "f" ]
   then  
     if [ "${RUNASROOT}" = "true" ]
     then
-      iptables -nvL
+      case "${UNAME_S}" in
+        Linux) iptables -nvL ;;
+        FreeBSD)
+        pfctl -s rules 2>/dev/null
+        ipfw show 2>/dev/null
+        ;;
+        *) ;;
+      esac
     else
       echo "# Can not read firewall configuration without root permissions #"
     fi
@@ -180,7 +202,7 @@ function doc_firewall {
   fi 
 }
 
-function doc_os {
+doc_os() {
 
   echo ""
   echo "## OS ##"
@@ -191,59 +213,92 @@ function doc_os {
 
   echo -n "Hypervisor: "
 
+  case "${UNAME_S}" in
+    Linux)
+    VIRT=$(bash virt-what 2>/dev/null)
 
-  VIRT=$(bash virt-what 2>/dev/null)
-
-  if [ -z "${VIRT}" ]
-  then
-    echo "Running on hardware or unknown hypervisor"
-  else
-    if [ "$(echo ${VIRT} | awk '{print $1}')" = "xen" ]
+    if [ -z "${VIRT}" ]
     then
-      if [ "$(echo ${VIRT} | awk '{print $2}')" = "xen-dom0" ]
+      echo "Running on hardware or unknown hypervisor"
+    else
+      if [ "$(echo ${VIRT} | awk '{print $1}')" = "xen" ]
       then
-        VIRTUAL=false
-      else
+        if [ "$(echo ${VIRT} | awk '{print $2}')" = "xen-dom0" ]
+        then
+          VIRTUAL=false
+        else
+          VIRTUAL=true
+          HYPERVISOR="Xen"
+        fi
+      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "kvm" ]
+      then
         VIRTUAL=true
-        HYPERVISOR="Xen"
+        HYPERVISOR="KVM"
+      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmware" ]
+      then
+        VIRTUAL=true
+        HYPERVISOR="VMware"
+      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "virtualbox" ]
+      then
+        # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
+        VIRTUAL=true
+        HYPERVISOR="VirtualBox"
+      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "bhyve" ]
+      then
+        VIRTUAL=true
+        HYPERVISOR="bhyve"
+      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmm" ]
+      then
+        VIRTUAL=true
+        HYPERVISOR="vmm"
+      else
+        VIRTUAL=false
       fi
-    elif [ "$(echo ${VIRT} | awk '{print $1}')" = "kvm" ]
-    then
-      VIRTUAL=true
-      HYPERVISOR="KVM"
-    elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmware" ]
-    then
-      VIRTUAL=true
-      HYPERVISOR="VMware"
-    elif [ "$(echo ${VIRT} | awk '{print $1}')" = "virtualbox" ]
-    then
-      # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
-      VIRTUAL=true
-      HYPERVISOR="VirtualBox"
-    else
-      VIRTUAL=false
-    fi
 
-    if [ "${VIRTUAL}" = "false" ]
-    then
-      echo "Running on Hardware or unknown Hypervisor"
-    else
-      echo "Running virtually on a ${HYPERVISOR} hypervisor"
     fi
+    ;;
+    FreeBSD)
+    VIRT="$(sysctl -n kern.vm_guest)" 
+    VIRTUAL=true
+    case "${VIRT}" in 
+      none)          VIRTUAL=false ;;
+      generic|bhyve) HYPERVISOR=byhve ;;
+      xen)           HYPERVISOR=Xen ;;
+      hv)            HYPERVISOR=Hyper-V ;;
+      vmware)        HYPERVISOR=VMware ;;
+      kvm)           HYPERVISOR=KVM ;;
+      *) ;; #XXX
+    esac
+    ;;
+    *) ;; # XXX
+  esac
+
+  if [ "${VIRTUAL}" = "false" -o -z "${VIRTUAL}" ]
+  then
+    echo "Running on Hardware or unknown Hypervisor"
+  else
+    echo "Running virtually on a ${HYPERVISOR} hypervisor"
   fi
 
   #dmidecode | grep -i vmware
   #lspci | grep -i vmware
   #grep -q ^flags.*\ hypervisor\ /proc/cpuinfo && echo "This machine is a VM"
 
-  echo -n "CPU cores: "
-
-  cat /proc/cpuinfo | grep ^processor | wc -l
-
-  echo -n "RAM: "
-
-  free -h | grep ^Mem | awk '{print $2}'
-
+  case "${UNAME_S}" in
+    Linux)
+    echo -n "CPU cores: "
+    cat /proc/cpuinfo | grep ^processor | wc -l
+    echo -n "RAM: "
+    free -h | grep ^Mem | awk '{print $2}'
+    ;;
+    FreeBSD)
+    echo -n "CPU cores: "
+    sysctl -n hw.ncpu
+    echo -n "RAM: "
+    echo $(expr $(sysctl -n hw.physmem) / 1024 / 1024) MB
+    ;;
+    *) ;;
+  esac
 
   if [ "${OS}" = "REDHAT" ]
   then
@@ -261,7 +316,7 @@ function doc_os {
   doc_firewall
 }
 
-function create_tarball {
+create_tarball() {
   OUTPUTDIR=$(mktemp -dt ic_diag.XXXXX)
   # run this diagnostics script again and print it's output into the tarball
   if [ "${FULL}" = true ]
