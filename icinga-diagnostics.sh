@@ -20,6 +20,9 @@ OPTSTR="fht"
 TIMESTAMP=$(date +%Y%m%d)
 UNAME_S=$(uname -s)
 
+# The GnuPG key used for signing packages in the Icinga repository
+ICINGAKEY="c6e319c334410682"
+
 ## Computed variables ##
 
 if [ "$(id -u)" != "0" ]; then
@@ -33,6 +36,26 @@ fi
 if [ $(which systemctl 2>/dev/null) ]
 then
   SYSTEMD=true
+fi
+
+if [ -f "/etc/redhat-release" ]
+then
+  QUERYPACKAGE="rpm -q"
+  OS="REDHAT"
+  OSVERSION="$(cat /etc/redhat-release)"
+elif [ -f "/etc/debian_version" ]
+then
+  QUERYPACKAGE="dpkg -l"
+  OS="$(grep ^NAME /etc/os-release | cut -d\" -f2)"
+  OSVERSION="${OS} $(cat /etc/debian_version)"
+elif [ "${UNAME_S}" = "FreeBSD" ]
+then
+  QUERYPACKAGE="pkg info"
+  OS="${UNAME_S}"
+  PREFIX="/usr/local"
+  uname -srm 
+else
+  lsb_release -irs
 fi
 
 ### Functions ###
@@ -59,16 +82,22 @@ check_service() {
 
 doc_icinga2() {
   echo ""
+
+  # query all installed packages with "icinga" in their name
+  # check every package whether it was signed with the GnuPG key of the icinga team
   echo "Packages:"
   case "${OS}" in
     REDHAT)
-    for i in $(rpm -qa | grep icinga); do
-      (rpm -qi $i | grep ^Name | cut -d: -f2)
-      (rpm -qi $i | grep Version)
-      (if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "c6e319c334410682" ]; then
-         echo "Signed with Icinga key";
-       else echo "Not signed with Icinga Key, might be original anyway";
-       fi)
+    for i in $(rpm -qa | grep icinga)
+    do
+      rpm -qi $i | grep ^Name | cut -d: -f2
+      rpm -qi $i | grep Version
+      if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "${ICINGAKEY}" ]
+      then
+        echo "Signed with Icinga key";
+      else
+        echo "Not signed with Icinga Key, might be original anyway";
+      fi
     done
     ;;
     FreeBSD) ${QUERYPACKAGE} -x icinga ;;
@@ -81,16 +110,24 @@ doc_icinga2() {
   echo "Features:"
   icinga2 feature list
 
+  # change the IFS variable to have whitespaces not split up items in a `for i in` loop.
+  # this is to be used because some zone-names might contain whitespaces
+  SAVEIFS=${IFS}
+  IFS=$(printf "\n\b")
   echo ""
   echo "Zones and Endpoints:"
-  for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2) ; do
-    (echo $i )
-    (icinga2 object list --type Zone --name $i | 
-      grep -e 'endpoints =' -e 'parent =' -e 'global =' |
-      grep -v -e '= null' -e '= false' -e '= ""')
+  for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2)
+  do
+    echo $i
+    icinga2 object list --type Zone --name $i | grep -e 'endpoints =' -e 'parent =' -e 'global =' | grep -v -e '= null' -e '= false' -e '= ""'
   done
+  IFS=${SAVEIFS}
 
   echo ""
+  # count how often every check interval is used. This helps with getting an overview and finding misconfigurations
+  # * are there lots of different intervals? -> Users might get confused
+  # * very high or very low intervals -> could mean messed up units (e.g.: s instead of m)
+  # * many different intervals? -> could lead to problems with graphs
   echo "Check intervals:"
   icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn
   icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn
@@ -121,8 +158,10 @@ doc_icingaweb2() {
   echo "Icinga Web 2 Modules:"
   # Add options for modules in other directories
   icingacli module list
-  for i in $(icingacli module list | grep -v ^MODULE | awk '{print $1}'); do
-    if [ -d ${PREFIX}/usr/share/icingaweb2/modules/$i/.git ]; then
+  for i in $(icingacli module list | grep -v ^MODULE | awk '{print $1}')
+  do
+    if [ -d ${PREFIX}/usr/share/icingaweb2/modules/$i/.git ]
+    then
       echo "$i via git - $(cd ${PREFIX}/usr/share/icingaweb2/modules/$i && git log -1 --format=\"%H\")"
     else
       echo "$i via release archive/package"
@@ -170,27 +209,7 @@ doc_os() {
   echo ""
   echo -n "OS Version: "
 
-  case "${UNAME_S}" in
-    Linux)
-    if [ -n "$(cat /etc/redhat-release)" ]
-    then
-      QUERYPACKAGE="rpm -q"
-      OS="REDHAT"
-      cat /etc/redhat-release
-    else
-      lsb_release -irs
-    fi
-    ;;
-    FreeBSD)
-    QUERYPACKAGE="pkg info"
-    OS="${UNAME_S}"
-    PREFIX="/usr/local"
-    uname -srm 
-    ;;
-    *) # XXX
-    ;;
-  esac
-
+  echo ${OSVERSION}
 
   echo -n "Hypervisor: "
 
