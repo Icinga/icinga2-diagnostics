@@ -1,7 +1,7 @@
 #!/bin/sh
 # Icinga Diagnostics
 # Collect basic data about your Icinga 2 installation
-# author: Thomas Widhalm <thomas.widhalm@icinga.com>
+# maintainer: Thomas Widhalm <thomas.widhalm@icinga.com>
 # Original source: https://github.com/widhalmt/icinga2-diagnostics
 
 VERSION=0.0
