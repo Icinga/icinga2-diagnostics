@@ -363,8 +363,10 @@ doc_os
 echo ""
 echo "# Icinga 2 #"
 echo ""
+${QUERYPACKAGE} omd > /dev/null
+OMD=$?
 ${QUERYPACKAGE} icinga2 > /dev/null
-if [ $? -eq 0 ]
+if [ $? -eq 0 -o $OMD -eq 0 ]
 then
   doc_icinga2
 else
