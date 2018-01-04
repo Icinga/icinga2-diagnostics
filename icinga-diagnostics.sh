@@ -175,7 +175,7 @@ doc_icingaweb2() {
 
   echo ""
   echo "Icinga Web 2 commandtransport configuration:"
-  cat ${PREFIX}/etc/icingaweb2/modules/monitoring/commandtransports.ini
+  cat ${PREFIX}/etc/icingaweb2/modules/monitoring/commandtransports.ini | sed '/password/s/"[^"]*"/MASKED/' 
 
 }
 
