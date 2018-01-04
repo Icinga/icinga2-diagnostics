@@ -134,8 +134,8 @@ doc_icinga2() {
   # * very high or very low intervals -> could mean messed up units (e.g.: s instead of m)
   # * many different intervals? -> could lead to problems with graphs
   echo "Check intervals:"
-  icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn
-  icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn
+  icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Host/'
+  icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Service/'
 
 }
 
