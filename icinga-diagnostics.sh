@@ -79,7 +79,7 @@ show_help() {
 check_service() {
   if [ "${SYSTEMD}" = "true" ]
   then
-    systemctl is-active $1
+    systemctl show $1.service -p ActiveState | cut -d= -f2
   else
     service $1 status > /dev/null && echo "active" || echo "inactive"
   fi
