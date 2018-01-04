@@ -54,6 +54,11 @@ then
   OS="${UNAME_S}"
   PREFIX="/usr/local"
   uname -srm 
+elif [ -f "/etc/SuSE-release" ]
+then
+  QUERYPACKAGE="rpm -q"
+  OS="SuSE"
+  OSVERSION="${OS} $(cat /etc/SuSE-release)"
 else
   lsb_release -irs
 fi
@@ -88,18 +93,18 @@ doc_icinga2() {
   echo "Packages:"
   case "${OS}" in
     REDHAT)
-    for i in $(rpm -qa | grep icinga)
-    do
-      rpm -qi $i | grep ^Name | cut -d: -f2
-      rpm -qi $i | grep Version
-      if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "${ICINGAKEY}" ]
-      then
-        echo "Signed with Icinga key";
-      else
-        echo "Not signed with Icinga Key, might be original anyway";
-      fi
-    done
-    ;;
+      for i in $(rpm -qa | grep icinga)
+      do
+        rpm -qi $i | grep ^Name | cut -d: -f2
+        rpm -qi $i | grep Version
+        if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "${ICINGAKEY}" ]
+        then
+          echo "Signed with Icinga key";
+        else
+          echo "Not signed with Icinga Key, might be original anyway";
+        fi
+      done
+      ;;
     FreeBSD) ${QUERYPACKAGE} -x icinga ;;
     *) echo "Can not query packages on ${OS}" ;;
   esac
@@ -184,9 +189,9 @@ doc_firewall() {
       case "${UNAME_S}" in
         Linux) iptables -nvL ;;
         FreeBSD)
-        pfctl -s rules 2>/dev/null
-        ipfw show 2>/dev/null
-        ;;
+          pfctl -s rules 2>/dev/null
+          ipfw show 2>/dev/null
+          ;;
         *) ;;
       esac
     else
@@ -215,61 +220,61 @@ doc_os() {
 
   case "${UNAME_S}" in
     Linux)
-    VIRT=$(bash virt-what 2>/dev/null)
+      VIRT=$(bash virt-what 2>/dev/null)
 
-    if [ -z "${VIRT}" ]
-    then
-      echo "Running on hardware or unknown hypervisor"
-    else
-      if [ "$(echo ${VIRT} | awk '{print $1}')" = "xen" ]
+      if [ -z "${VIRT}" ]
       then
-        if [ "$(echo ${VIRT} | awk '{print $2}')" = "xen-dom0" ]
-        then
-          VIRTUAL=false
-        else
-          VIRTUAL=true
-          HYPERVISOR="Xen"
-        fi
-      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "kvm" ]
-      then
-        VIRTUAL=true
-        HYPERVISOR="KVM"
-      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmware" ]
-      then
-        VIRTUAL=true
-        HYPERVISOR="VMware"
-      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "virtualbox" ]
-      then
-        # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
-        VIRTUAL=true
-        HYPERVISOR="VirtualBox"
-      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "bhyve" ]
-      then
-        VIRTUAL=true
-        HYPERVISOR="bhyve"
-      elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmm" ]
-      then
-        VIRTUAL=true
-        HYPERVISOR="vmm"
+        echo "Running on hardware or unknown hypervisor"
       else
-        VIRTUAL=false
-      fi
+        if [ "$(echo ${VIRT} | awk '{print $1}')" = "xen" ]
+        then
+          if [ "$(echo ${VIRT} | awk '{print $2}')" = "xen-dom0" ]
+          then
+            VIRTUAL=false
+          else
+            VIRTUAL=true
+            HYPERVISOR="Xen"
+          fi
+        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "kvm" ]
+        then
+          VIRTUAL=true
+          HYPERVISOR="KVM"
+        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmware" ]
+        then
+          VIRTUAL=true
+          HYPERVISOR="VMware"
+        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "virtualbox" ]
+        then
+          # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
+          VIRTUAL=true
+          HYPERVISOR="VirtualBox"
+        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "bhyve" ]
+        then
+          VIRTUAL=true
+          HYPERVISOR="bhyve"
+        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmm" ]
+        then
+          VIRTUAL=true
+          HYPERVISOR="vmm"
+        else
+          VIRTUAL=false
+        fi
 
-    fi
-    ;;
+      fi
+      ;;
     FreeBSD)
-    VIRT="$(sysctl -n kern.vm_guest)" 
-    VIRTUAL=true
-    case "${VIRT}" in 
-      none)          VIRTUAL=false ;;
-      generic|bhyve) HYPERVISOR=byhve ;;
-      xen)           HYPERVISOR=Xen ;;
-      hv)            HYPERVISOR=Hyper-V ;;
-      vmware)        HYPERVISOR=VMware ;;
-      kvm)           HYPERVISOR=KVM ;;
-      *) ;; #XXX
-    esac
-    ;;
+      VIRT="$(sysctl -n kern.vm_guest)" 
+      VIRTUAL=true
+      case "${VIRT}" in 
+        none)          VIRTUAL=false ;;
+        generic|bhyve) HYPERVISOR=byhve ;;
+        xen)           HYPERVISOR=Xen ;;
+        hv)            HYPERVISOR=Hyper-V ;;
+        vmware)        HYPERVISOR=VMware ;;
+        kvm)           HYPERVISOR=KVM ;;
+        *) ;; #XXX
+      esac
+      ;;
     *) ;; # XXX
   esac
 
@@ -286,17 +291,22 @@ doc_os() {
 
   case "${UNAME_S}" in
     Linux)
-    echo -n "CPU cores: "
-    cat /proc/cpuinfo | grep ^processor | wc -l
-    echo -n "RAM: "
-    free -h | grep ^Mem | awk '{print $2}'
-    ;;
+      echo -n "CPU cores: "
+      cat /proc/cpuinfo | grep ^processor | wc -l
+      echo -n "RAM: "
+      if [ "${OS}" = "SuSE" ]
+      then
+        free -g | grep ^Mem | awk '{print $2"G"}'
+      else
+        free -h | grep ^Mem | awk '{print $2}'
+      fi
+      ;;
     FreeBSD)
-    echo -n "CPU cores: "
-    sysctl -n hw.ncpu
-    echo -n "RAM: "
-    echo $(expr $(sysctl -n hw.physmem) / 1024 / 1024) MB
-    ;;
+      echo -n "CPU cores: "
+      sysctl -n hw.ncpu
+      echo -n "RAM: "
+      echo $(expr $(sysctl -n hw.physmem) / 1024 / 1024) MB
+      ;;
     *) ;;
   esac
 

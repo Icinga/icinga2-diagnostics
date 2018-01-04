@@ -12,6 +12,7 @@ Later versions might include options to collect this "usually helpful" set of da
 The script currently works on the following operating systems:
 
 * RHEL/CentOS/Oracle Linux/Scientific Linux
+* SLES
 * FreeBSD (thanks, @larsengels)
 * Debian (still some functionality is missing)
 
