@@ -280,7 +280,12 @@ doc_os() {
 
   if [ "${VIRTUAL}" = "false" -o -z "${VIRTUAL}" ]
   then
-    echo "Running on Hardware or unknown Hypervisor"
+    if [ "${RUNASROOT}" = "true" ]
+    then
+      echo "Running on Hardware or unknown Hypervisor"
+    else
+      echo "Insufficient permissions to check Hypervisor"
+    fi
   else
     echo "Running virtually on a ${HYPERVISOR} hypervisor"
   fi
