@@ -60,6 +60,7 @@ then
   OS="SuSE"
   OSVERSION="${OS} $(cat /etc/SuSE-release)"
 else
+  # could not use the following check because this package is optional on some distributions
   lsb_release -irs
 fi
 
