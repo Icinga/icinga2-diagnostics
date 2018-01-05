@@ -80,7 +80,7 @@ show_help() {
 check_service() {
   if [ "${SYSTEMD}" = "true" ]
   then
-    systemctl is-active $1
+    systemctl show $1.service -p ActiveState | cut -d= -f2
   else
     service $1 status > /dev/null && echo "active" || echo "inactive"
   fi
@@ -176,7 +176,7 @@ doc_icingaweb2() {
 
   echo ""
   echo "Icinga Web 2 commandtransport configuration:"
-  cat ${PREFIX}/etc/icingaweb2/modules/monitoring/commandtransports.ini
+  cat ${PREFIX}/etc/icingaweb2/modules/monitoring/commandtransports.ini | sed '/password/s/"[^"]*"/MASKED/' 
 
 }
 
