@@ -88,7 +88,18 @@ check_service() {
 }
 
 doc_icinga2() {
-  echo ""
+
+  # Check if debuglog is active
+  if [ "$(icinga2 feature list | egrep '^Enabled.*debuglog' | wc -l)" -gt 0 ]
+  then
+	  #echo "Debuglog is enabled"
+	  IC2_DEBUGLOG=true
+  else
+	  echo "Debuglog is disabled. Not all checks might succeed"
+	  IC2_DEBUGLOG=false
+	  echo ""
+  fi
+
 
   # query all installed packages with "icinga" in their name
   # check every package whether it was signed with the GnuPG key of the icinga team
@@ -141,6 +152,13 @@ doc_icinga2() {
   echo "Check intervals:"
   icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Host/'
   icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Service/'
+  if [ "${IC2_DEBUGLOG}" ]
+  then
+    echo ""
+    echo "Used commands (numbers are relative to each other, not showing configured objects):"
+    grep 'Running command'  /var/log/icinga2/debug.log | cut -d\' -f2 | sort | uniq -c | sort -rn
+  fi
+
   # add a config check. Not only to see if something is wrong with the configuration but to get the summary of all configured objects as well
   echo ""
   icinga2 daemon -C
