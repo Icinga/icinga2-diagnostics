@@ -366,7 +366,20 @@ create_tarball() {
   else
     $0 > ${OUTPUTDIR}/icinga_diagnostics
   fi
-  tar -cjf /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2 ${OUTPUTDIR}/* 2>/dev/null
+  # copy Icinga 2 configuration into tarball
+  cp -a /etc/icinga2 ${OUTPUTDIR}/
+  # copy Icinga Web 2 configuration into tarball
+  cp -a /etc/icingaweb2 ${OUTPUTDIR}/
+  # copy most recent logs
+  cp /var/log/icinga2/icinga2.log ${OUTPUTDIR}/
+  cp /var/log/icinga2/error.log ${OUTPUTDIR}/
+  cp -r /var/log/icinga2/crash ${OUTPUTDIR}/
+  if [ -f /var/log/icinga2/debug.log ]
+  then
+	  cp /var/log/icinga2/debug.log ${OUTPUTDIR}/
+  fi
+  # create tarball of all collected data
+  cd ${OUTPUTDIR} && tar -cjf /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2 * 2>/dev/null
   chmod 0600 /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2
   echo "Your tarball is ready at: /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2"
   exit 0

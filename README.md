@@ -7,6 +7,30 @@ The intention is not to collect as much data as possible but collect what is hel
 
 Later versions might include options to collect this "usually helpful" set of data or lots of data for deep diving (e.g. whole logfiles, etc.)
 
+## Usage ##
+
+This script has several different modes:
+
+* Default mode: Give a quick overview over your setup for professional or community support
+* Tarball mode: Create a tarball of the configuration of your setup for thorough investigation by professional support
+* Suggestion mode: Search things to improve and possible problems and give advice (still to be implemented)
+
+### Default Mode ###
+
+Just use the script without any parameter.
+
+    # ./icinga-diagnostics.sh
+
+### Tarball Mode ###
+
+Just run the script with the `-t` parameter.
+
+    # ./icinga-diagnostics.sh -t
+
+**Be aware that this collects your whole configuration including passwords, etc. Think before you send this to someone!**
+
+The script will thell you where you can find your tarball when it's finished. You can still remove data from the tarball before sending it to someone.
+
 ## Currently supported systems ##
 
 The script currently works on the following operating systems:
