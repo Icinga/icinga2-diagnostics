@@ -15,7 +15,7 @@ echo ""
 
 ## Static variables ##
 
-OPTSTR="fht"
+OPTSTR="fhtz"
 
 TIMESTAMP=$(date +%Y%m%d)
 UNAME_S=$(uname -s)
@@ -73,6 +73,7 @@ show_help() {
   -f add full Icinga 2 configuration to output (use with -t)
   -h show this help
   -t create a tarball instead of just printing the output
+  -z list all zones in standard output (ignored in "full" mode)
   "
   exit 0
 }
@@ -116,18 +117,21 @@ doc_icinga2() {
   echo "Features:"
   icinga2 feature list
 
-  # change the IFS variable to have whitespaces not split up items in a `for i in` loop.
-  # this is to be used because some zone-names might contain whitespaces
-  SAVEIFS=${IFS}
-  IFS=$(printf "\n\b")
-  echo ""
-  echo "Zones and Endpoints:"
-  for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2)
-  do
-    echo $i
-    icinga2 object list --type Zone --name $i | grep -e 'endpoints =' -e 'parent =' -e 'global =' | grep -v -e '= null' -e '= false' -e '= ""'
-  done
-  IFS=${SAVEIFS}
+  if [ ${ZONES} ]
+  then
+    # change the IFS variable to have whitespaces not split up items in a `for i in` loop.
+    # this is to be used because some zone-names might contain whitespaces
+    SAVEIFS=${IFS}
+    IFS=$(printf "\n\b")
+    echo ""
+    echo "Zones and Endpoints:"
+    for i in $(icinga2 object list --type zone | grep ^Object | cut -d\' -f2)
+    do
+      echo $i
+      icinga2 object list --type Zone --name $i | grep -e 'endpoints =' -e 'parent =' -e 'global =' | grep -v -e '= null' -e '= false' -e '= ""'
+    done
+    IFS=${SAVEIFS}
+  fi
 
   echo ""
   # count how often every check interval is used. This helps with getting an overview and finding misconfigurations
@@ -356,6 +360,7 @@ do
     f) FULL=true;;
     h) show_help;;
     t) create_tarball;;
+    z) ZONES=true;;
   esac
 done
 
