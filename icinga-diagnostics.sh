@@ -141,6 +141,9 @@ doc_icinga2() {
   echo "Check intervals:"
   icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Host/'
   icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Service/'
+  # add a config check. Not only to see if something is wrong with the configuration but to get the summary of all configured objects as well
+  echo ""
+  icinga2 daemon -C
 
 }
 
