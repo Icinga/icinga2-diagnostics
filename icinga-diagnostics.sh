@@ -203,6 +203,42 @@ doc_icingaweb2() {
   echo "Icinga Web 2 commandtransport configuration:"
   cat ${PREFIX}/etc/icingaweb2/modules/monitoring/commandtransports.ini | sed '/password/s/"[^"]*"/MASKED/' 
 
+  # Director diagnostics
+
+  echo ""
+
+  if [ $(icingacli module list | grep ^director | wc -l) -gt 0 ]
+  then
+	  # determine director version from icingacli once. We might need it again later
+	  DIRECTOR_VERSION="$(icingacli module list | grep director | awk '{print $2}')"
+	  if [ "${DIRECTOR_VERSION}" = "master" ]
+	  then
+		  # no release was downloaded
+		  if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
+		  then
+			  # .git directory normally means this is a git clone
+			  # if this is just a local git directory we'll see that in the git log
+			  echo "Director is a git clone with the following last commit"
+			  echo ""
+			  # use pushd / popd to quickly change the directory - might not work on other OS'es/shells
+			  pushd ${PREFIX}/usr/share/icingaweb2/modules/director/ > /dev/null && (git log -n1)
+			  popd > /dev/null
+		  else
+			  echo "Director is a downloaded git master with no known way of determining the version"
+		  fi
+	  else
+		  echo "Director is release ${DIRECTOR_VERSION}"
+		  if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
+		  then
+			  echo "Director was installed as a git clone"
+		  else
+			  echo "Director was installed by downloading a release archive"
+		  fi
+	  fi 
+  else
+	  echo "Icinga Director is not installed or is deactivated"
+  fi
+
 }
 
 doc_firewall() {
