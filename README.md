@@ -36,7 +36,7 @@ The script will thell you where you can find your tarball when it's finished. Yo
 The script currently works on the following operating systems:
 
 * RHEL/CentOS/Oracle Linux/Scientific Linux
-* SLES
+* SLES (thanks, wnieder)
 * FreeBSD (thanks, @larsengels)
 * Debian (still some functionality is missing)
 
