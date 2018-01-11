@@ -214,6 +214,7 @@ doc_icingaweb2() {
 	  if [ "${DIRECTOR_VERSION}" = "master" ]
 	  then
 		  # no release was downloaded
+		  DIRECTOR_NO_RELEASE=true
 		  if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
 		  then
 			  # .git directory normally means this is a git clone
@@ -231,6 +232,9 @@ doc_icingaweb2() {
 		  if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
 		  then
 			  echo "Director was installed as a git clone"
+			  # trigger anomaly detection because it's hard to determine if a git clone is really a
+			  # release or just by accident the latest release
+			  DIRECTOR_NO_RELEASE=true
 		  else
 			  echo "Director was installed by downloading a release archive"
 		  fi
@@ -460,4 +464,11 @@ else
   echo "Icinga Web 2 is not installed"
 fi
 
+echo ""
+echo "# Anomalies found #"
+echo ""
 
+if [ ${DIRECTOR_NO_RELEASE} ]
+then
+	echo "* Director is installed but no release archive was used for installation. (Please note that it still could the code of a release)"
+fi
