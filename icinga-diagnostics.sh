@@ -438,6 +438,13 @@ do
   esac
 done
 
+# seems like not all `test` implementations understand `-o`
+# therefore set all relevant booleans in full mode
+if [ ${FULL} ]
+then
+	ZONES=true
+fi
+
 doc_os
 
 echo ""
