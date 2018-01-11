@@ -65,54 +65,88 @@ e.g.
 
 This is an abrreviated output from a run on a [Icinga 2 Vagrant box](https://github.com/Icinga/icinga-vagrant)
 
+    # ./icinga-diagnostics.sh 
     ### Icinga 2 Diagnostics ###
     # Version: 0.0
-    # Run on icinga2 at Tue Jan  2 11:14:52 UTC 2018
+    # Run on icinga2 at Thu Jan 11 18:02:14 UTC 2018
     
     Running as root
     
     ## OS ##
     
-    OS Version: CentOS Linux release 7.4.1708 (Core) 
+    OS Version: CentOS Linux release 7.4.1708 (Core)
     Hypervisor: Running virtually on a VirtualBox hypervisor
     CPU cores: 2
     RAM: 1.8G
     SELinux: Permissive
-    Firewall: unknown
+    Firewall: inactive
     
     # Icinga 2 #
     
+    ## Packages: ##
     
-    Packages:
-     icingacli
-    Version     : 2.5.0.2.g890013c
-    Signed with Icinga key
-     icingaweb2-vendor-HTMLPurifier
-    Version     : 2.5.0.2.g890013c
-    Signed with Icinga key
-     icingaweb2
-    Version     : 2.5.0.2.g890013c
-    Signed with Icinga key
-    [...]
+    Icinga 2  Version     : 2.8.0.187.g025abc3
+    
+    Done checking packages. See Anomaly section if something odd was found.
+    
     Features:
     Disabled features: command compatlog elasticsearch gelf influxdb livestatus opentsdb perfdata statusdata syslog
     Enabled features: api checker debuglog graphite ido-mysql mainlog notification
     
-    Zones and Endpoints:
-    director-global
-      * global = true
-    global-templates
-      * global = true
-    icinga2
-      * endpoints = [ "icinga2" ]
-    
     Check intervals:
-         88   * check_interval = 300
-          1   * check_interval = 60
-        113   * check_interval = 60
-         13   * check_interval = 30
-          5   * check_interval = 5
-          3   * check_interval = 300
+         88   * check_interval = 300, Host
+          1   * check_interval = 60, Host
+        113   * check_interval = 60, Service
+         13   * check_interval = 30, Service
+          5   * check_interval = 5, Service
+          3   * check_interval = 300, Service
+    
+    Used commands (numbers are relative to each other, not showing configured objects):
+      28093 /etc/icinga2/scripts/mail-service-notification.sh
+      14120 /usr/lib64/nagios/plugins/check_mysql_health
+      10146 /usr/lib64/nagios/plugins/check_http
+       6428 /usr/lib64/nagios/plugins/check_ping
+       4396 /usr/lib64/nagios/plugins/check_load
+       3415 /usr/lib64/nagios/plugins/check_ssh
+       1758 /usr/lib64/nagios/plugins/check_dns
+       1758 /usr/lib64/nagios/plugins/check_disk
+        880 /usr/lib64/nagios/plugins/check_procs
+        879 /usr/lib64/nagios/plugins/check_users
+        879 /usr/lib64/nagios/plugins/check_swap
+        528 /usr/bin/icingacli
+    
+    information/cli: Icinga application loader (version: v2.8.0-187-g025abc3)
+    information/cli: Loading configuration file(s).
+    information/ConfigItem: Committing config item(s).
+    information/ApiListener: My API identity: icinga2
+    warning/globals.getHostGeoLocation: Cannot find 'be' in GeoLocationShort
+    warning/ApplyRule: Apply rule 'many-dummy' (in /etc/icinga2/demo/many.conf: 36:1-36:39) for type 'Notification' does not match anywhere!
+    warning/ApplyRule: Apply rule 'many-dummy' (in /etc/icinga2/demo/many.conf: 41:1-41:42) for type 'Notification' does not match anywhere!
+    warning/ApplyRule: Apply rule 'many-test-0' (in /etc/icinga2/demo/many.conf: 16:3-16:32) for type 'Service' does not match anywhere!
+    warning/ApplyRule: Apply rule 'many-test-1' (in /etc/icinga2/demo/many.conf: 16:3-16:32) for type 'Service' does not match anywhere!
+    warning/ApplyRule: Apply rule 'many-test-2' (in /etc/icinga2/demo/many.conf: 16:3-16:32) for type 'Service' does not match anywhere!
+    information/ConfigItem: Instantiated 1 ApiListener.
+    information/ConfigItem: Instantiated 3 Zones.
+    information/ConfigItem: Instantiated 1 Endpoint.
+    information/ConfigItem: Instantiated 4 ApiUsers.
+    information/ConfigItem: Instantiated 2 FileLoggers.
+    information/ConfigItem: Instantiated 28 Notifications.
+    information/ConfigItem: Instantiated 1 UserGroup.
+    information/ConfigItem: Instantiated 2 Users.
+    information/ConfigItem: Instantiated 203 CheckCommands.
+    information/ConfigItem: Instantiated 3 NotificationCommands.
+    information/ConfigItem: Instantiated 4 HostGroups.
+    information/ConfigItem: Instantiated 1 IcingaApplication.
+    information/ConfigItem: Instantiated 89 Hosts.
+    information/ConfigItem: Instantiated 3 TimePeriods.
+    information/ConfigItem: Instantiated 134 Services.
+    information/ConfigItem: Instantiated 3 ServiceGroups.
+    information/ConfigItem: Instantiated 1 CheckerComponent.
+    information/ConfigItem: Instantiated 1 GraphiteWriter.
+    information/ConfigItem: Instantiated 1 IdoMysqlConnection.
+    information/ConfigItem: Instantiated 1 NotificationComponent.
+    information/ScriptGlobal: Dumping variables to file '/var/cache/icinga2/icinga2.vars'
+    information/cli: Finished validating the configuration file(s).
     
     # Icinga Web 2 #
     
@@ -125,13 +159,19 @@ This is an abrreviated output from a run on a [Icinga 2 Vagrant box](https://git
     Icinga Web 2 Modules:
     MODULE         VERSION   STATE     DESCRIPTION
     businessprocess 2.1.0     enabled   A Business Process viewer and modeler
-    director       master    enabled   Director - Config tool for Icinga 2
+    cube           1.0.1     enabled   Cube for Icinga Web 2
+    director       1.3.2     enabled   Director - Config tool for Icinga 2
     doc            2.5.0     enabled   Documentation module
+    grafana        1.1.10    enabled   Grafana - A perfdata visualisation module
+    map            1.0.4     enabled   Map - Visualize your hosts and service status
     monitoring     2.5.0     enabled   Icinga monitoring module
     
     businessprocess via git - "00e2f1886a9b07244e8dad237776b629fad59c0a"
-    director via git - "c825d0b441ae9a57e70ea53ccee464bf35c78aba"
+    cube via git - "7ba3feb71601fd2433e0b787ea87dddf53878e49"
+    director via git - "c4a97692df23e428a2eb6f1be41a7c25ea7b19a4"
     doc via release archive/package
+    grafana via git - "5ba8995a15fb4b1e72232e3dffd4b45c6bb89ab8"
+    map via git - "ec7fed3e4085f98f6f30f3557d85d5ed498e2a7d"
     monitoring via release archive/package
     
     Icinga Web 2 commandtransport configuration:
@@ -140,6 +180,11 @@ This is an abrreviated output from a run on a [Icinga 2 Vagrant box](https://git
     host = "localhost"
     port = "5665"
     username = "icingaweb2"
-    [...]
-
-
+    password = MASKED
+    
+    Director is release 1.3.2
+    Director was installed as a git clone
+    
+    # Anomalies found #
+    
+    * Director is installed but no release archive was used for installation. (Please note that it still could the code of a release)
