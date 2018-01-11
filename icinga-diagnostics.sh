@@ -103,24 +103,37 @@ doc_icinga2() {
 
   # query all installed packages with "icinga" in their name
   # check every package whether it was signed with the GnuPG key of the icinga team
-  echo "Packages:"
+  echo "## Packages: ##"
+  echo ""
   case "${OS}" in
     REDHAT)
+      if [ ! ${FULL} ]
+      then
+	echo -n "Icinga 2  "
+        rpm -qi icinga2 | grep Version
+      fi
       for i in $(rpm -qa | grep icinga)
       do
-        rpm -qi $i | grep ^Name | cut -d: -f2
-        rpm -qi $i | grep Version
-        if [ "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "${ICINGAKEY}" ]
+        if [ ${FULL} ]
+	then
+          rpm -qi $i | grep ^Name | cut -d: -f2
+          rpm -qi $i | grep Version
+        fi
+        if [ ! "$(rpm -qi $i | grep ^Signature | cut -d, -f3 | awk '{print $3}')" = "${ICINGAKEY}" ]
         then
-          echo "Signed with Icinga key";
-        else
-          echo "Not signed with Icinga Key, might be original anyway";
+          NON_ICINGA_PACKAGES="${NON_ICINGA_PACKAGES} $i"
         fi
       done
       ;;
     FreeBSD) ${QUERYPACKAGE} -x icinga ;;
     *) echo "Can not query packages on ${OS}" ;;
   esac
+  # if not in full mode there is no output. So at least inform the user about what happened.
+  if [ ! ${FULL} ]
+  then
+    echo ""
+    echo "Done checking packages. See Anomaly section if something odd was found."
+  fi
 
   # rpm -q --queryformat '%|DSAHEADER?{%{DSAHEADER:pgpsig}}:{%|RSAHEADER?{%{RSAHEADER:pgpsig}}:{%|SIGGPG?{%{SIGGPG:pgpsig}}:{%|SIGPGP?{%{SIGPGP:pgpsig}}:{(none)}|}|}|}|\n\' icinga2
 
@@ -418,6 +431,7 @@ create_tarball() {
   then
 	  cp /var/log/icinga2/debug.log ${OUTPUTDIR}/
   fi
+  icinga2 --version > ${OUTPUTDIR}/icinga2_version
   # create tarball of all collected data
   cd ${OUTPUTDIR} && tar -cjf /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2 * 2>/dev/null
   chmod 0600 /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2
@@ -478,4 +492,9 @@ echo ""
 if [ ${DIRECTOR_NO_RELEASE} ]
 then
 	echo "* Director is installed but no release archive was used for installation. (Please note that it still could the code of a release)"
+fi
+
+if [ ! -z "${NON_ICINGA_PACKAGES}" ]
+then
+	echo "* The following packages were not signed with the Icinga GnuPG key: ${NON_ICINGA_PACKAGES}"
 fi
