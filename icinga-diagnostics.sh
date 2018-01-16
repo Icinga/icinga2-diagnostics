@@ -400,6 +400,16 @@ doc_os() {
   top -b -n 1 | head -n5
   echo ""
 
+  ZOMBIES="$(ps axo stat=,command= | grep ^Z | sed 's/^S[[:blank:]]//g' | sort | uniq -c | sort -n)"
+  if [ ! -z "${ZOMBIES}" ]
+  then
+    echo "### Zombies ###"
+    echo ""
+    echo "${ZOMBIES}"
+    echo ""
+  fi
+
+
   if [ "${OS}" = "REDHAT" ]
   then
     echo -n "SELinux: "
@@ -504,4 +514,9 @@ fi
 if [ ! -z "${NON_ICINGA_PACKAGES}" ]
 then
 	echo "* The following packages were not signed with the Icinga GnuPG key: ${NON_ICINGA_PACKAGES}"
+fi
+
+if [ ! -z "${ZOMBIES}" ]
+then
+  echo "* Zombie processes found. See output for details"
 fi
