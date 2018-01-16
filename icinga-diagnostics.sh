@@ -394,6 +394,12 @@ doc_os() {
     *) ;;
   esac
 
+  echo ""
+  echo "### Top output ###"
+  echo ""
+  top -b -n 1 | head -n5
+  echo ""
+
   if [ "${OS}" = "REDHAT" ]
   then
     echo -n "SELinux: "
@@ -427,6 +433,7 @@ create_tarball() {
   cp /var/log/icinga2/icinga2.log ${OUTPUTDIR}/
   cp /var/log/icinga2/error.log ${OUTPUTDIR}/
   cp -r /var/log/icinga2/crash ${OUTPUTDIR}/
+  top -b -n1 > ${OUTPUTDIR}/top
   if [ -f /var/log/icinga2/debug.log ]
   then
 	  cp /var/log/icinga2/debug.log ${OUTPUTDIR}/
