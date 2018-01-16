@@ -92,12 +92,12 @@ doc_icinga2() {
   # Check if debuglog is active
   if [ "$(icinga2 feature list | egrep '^Enabled.*debuglog' | wc -l)" -gt 0 ]
   then
-	  #echo "Debuglog is enabled"
-	  IC2_DEBUGLOG=true
+    #echo "Debuglog is enabled"
+    IC2_DEBUGLOG=true
   else
-	  echo "Debuglog is disabled. Not all checks might succeed"
-	  IC2_DEBUGLOG=false
-	  echo ""
+    echo "Debuglog is disabled. Not all checks might succeed"
+    IC2_DEBUGLOG=false
+    echo ""
   fi
 
 
@@ -109,13 +109,13 @@ doc_icinga2() {
     REDHAT)
       if [ ! ${FULL} ]
       then
-	echo -n "Icinga 2  "
+        echo -n "Icinga 2  "
         rpm -qi icinga2 | grep Version
       fi
       for i in $(rpm -qa | grep icinga)
       do
         if [ ${FULL} ]
-	then
+        then
           rpm -qi $i | grep ^Name | cut -d: -f2
           rpm -qi $i | grep Version
         fi
@@ -222,38 +222,38 @@ doc_icingaweb2() {
 
   if [ $(icingacli module list | grep ^director | wc -l) -gt 0 ]
   then
-	  # determine director version from icingacli once. We might need it again later
-	  DIRECTOR_VERSION="$(icingacli module list | grep director | awk '{print $2}')"
-	  if [ "${DIRECTOR_VERSION}" = "master" ]
-	  then
-		  # no release was downloaded
-		  DIRECTOR_NO_RELEASE=true
-		  if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
-		  then
-			  # .git directory normally means this is a git clone
-			  # if this is just a local git directory we'll see that in the git log
-			  echo "Director is a git clone with the following last commit"
-			  echo ""
-			  # use pushd / popd to quickly change the directory - might not work on other OS'es/shells
-			  pushd ${PREFIX}/usr/share/icingaweb2/modules/director/ > /dev/null && (git log -n1)
-			  popd > /dev/null
-		  else
-			  echo "Director is a downloaded git master with no known way of determining the version"
-		  fi
-	  else
-		  echo "Director is release ${DIRECTOR_VERSION}"
-		  if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
-		  then
-			  echo "Director was installed as a git clone"
-			  # trigger anomaly detection because it's hard to determine if a git clone is really a
-			  # release or just by accident the latest release
-			  DIRECTOR_NO_RELEASE=true
-		  else
-			  echo "Director was installed by downloading a release archive"
-		  fi
-	  fi 
+    # determine director version from icingacli once. We might need it again later
+    DIRECTOR_VERSION="$(icingacli module list | grep director | awk '{print $2}')"
+    if [ "${DIRECTOR_VERSION}" = "master" ]
+    then
+      # no release was downloaded
+      DIRECTOR_NO_RELEASE=true
+      if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
+      then
+        # .git directory normally means this is a git clone
+        # if this is just a local git directory we'll see that in the git log
+        echo "Director is a git clone with the following last commit"
+        echo ""
+        # use pushd / popd to quickly change the directory - might not work on other OS'es/shells
+        pushd ${PREFIX}/usr/share/icingaweb2/modules/director/ > /dev/null && (git log -n1)
+        popd > /dev/null
+      else
+        echo "Director is a downloaded git master with no known way of determining the version"
+      fi
+    else
+      echo "Director is release ${DIRECTOR_VERSION}"
+      if [ -d "${PREFIX}/usr/share/icingaweb2/modules/director/.git" ]
+      then
+        echo "Director was installed as a git clone"
+        # trigger anomaly detection because it's hard to determine if a git clone is really a
+        # release or just by accident the latest release
+        DIRECTOR_NO_RELEASE=true
+      else
+        echo "Director was installed by downloading a release archive"
+      fi
+    fi 
   else
-	  echo "Icinga Director is not installed or is deactivated"
+    echo "Icinga Director is not installed or is deactivated"
   fi
 
 }
@@ -446,7 +446,7 @@ create_tarball() {
   top -b -n1 > ${OUTPUTDIR}/top
   if [ -f /var/log/icinga2/debug.log ]
   then
-	  cp /var/log/icinga2/debug.log ${OUTPUTDIR}/
+    cp /var/log/icinga2/debug.log ${OUTPUTDIR}/
   fi
   icinga2 --version > ${OUTPUTDIR}/icinga2_version
   # create tarball of all collected data
@@ -473,7 +473,7 @@ done
 # therefore set all relevant booleans in full mode
 if [ ${FULL} ]
 then
-	ZONES=true
+  ZONES=true
 fi
 
 doc_os
@@ -508,12 +508,12 @@ echo ""
 
 if [ ${DIRECTOR_NO_RELEASE} ]
 then
-	echo "* Director is installed but no release archive was used for installation. (Please note that it still could the code of a release)"
+  echo "* Director is installed but no release archive was used for installation. (Please note that it still could the code of a release)"
 fi
 
 if [ ! -z "${NON_ICINGA_PACKAGES}" ]
 then
-	echo "* The following packages were not signed with the Icinga GnuPG key: ${NON_ICINGA_PACKAGES}"
+  echo "* The following packages were not signed with the Icinga GnuPG key: ${NON_ICINGA_PACKAGES}"
 fi
 
 if [ ! -z "${ZOMBIES}" ]
