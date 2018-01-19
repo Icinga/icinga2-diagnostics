@@ -106,7 +106,7 @@ doc_icinga2() {
   echo "## Packages: ##"
   echo ""
   case "${OS}" in
-    REDHAT)
+    REDHAT|SuSE)
       if [ ! ${FULL} ]
       then
         echo -n "Icinga 2  "
