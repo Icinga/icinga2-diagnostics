@@ -15,6 +15,8 @@ This script has several different modes:
 * Tarball mode: Create a tarball of the configuration of your setup for thorough investigation by professional support
 * Suggestion mode: Search things to improve and possible problems and give advice (still to be implemented)
 
+If your setup consists of multiple hosts you can run on it on every node to get a more thorough overview. If you have e.g. dedicated nodes for graphing the script will work and only analyse the tools you installed on the node. (Although details about Graphers are still missing)
+
 ### Default Mode ###
 
 Just use the script without any parameter.
