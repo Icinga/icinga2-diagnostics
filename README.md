@@ -33,6 +33,13 @@ Just run the script with the `-t` parameter.
 
 The script will thell you where you can find your tarball when it's finished. You can still remove data from the tarball before sending it to someone.
 
+### Extra options ###
+
+* -z : Calculate zones with their endpoints (very time consuming on large setups)
+* -g : add `gdb` output
+
+`gdb` Output is only useful for debugging problems in the Icinga 2 binary, not for configuration problems. For `gdb` to work you have to install `gdb` and the "degbugging symbols" for all the programs you want to have their information added. e.g. for Icinga 2 the corresponding package is `icinga2-debuginfo` on RedHat/CentOS or `icinga2-dbg` on Debian or Ubuntu. In addition you will need the `icinga-gdb` file containing the `gdb` commands in the directory where icinga2-diagnostics resides.
+
 ## Currently supported systems ##
 
 The script currently works on the following operating systems:

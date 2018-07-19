@@ -15,7 +15,7 @@ echo ""
 
 ## Static variables ##
 
-OPTSTR="fhtz"
+OPTSTR="fhtzg"
 
 TIMESTAMP=$(date +%Y%m%d)
 UNAME_S=$(uname -s)
@@ -74,6 +74,7 @@ show_help() {
   -h show this help
   -t create a tarball instead of just printing the output
   -z list all zones in standard output (ignored in "full" mode)
+  -g provide gdb output for debugging
   "
   exit 0
 }
@@ -175,6 +176,20 @@ doc_icinga2() {
   # add a config check. Not only to see if something is wrong with the configuration but to get the summary of all configured objects as well
   echo ""
   icinga2 daemon -C
+
+  if [ ${GDB} ]
+  then
+    if [ $(which gdb) > /dev/null ]
+    then
+      echo ""
+      echo "## gdb Output ##"
+      echo ""
+      gdb -p $(pidof icinga2 | cut -d" " -f1) -x ./icinga-gdb -batch
+      echo ""
+    else
+      echo "GDB mode requested but gdb not found"
+    fi
+  fi
 
 }
 
@@ -466,6 +481,7 @@ do
     h) show_help;;
     t) create_tarball;;
     z) ZONES=true;;
+    g) GDB=true;;
   esac
 done
 
@@ -474,6 +490,7 @@ done
 if [ ${FULL} ]
 then
   ZONES=true
+  GDB=true
 fi
 
 doc_os
