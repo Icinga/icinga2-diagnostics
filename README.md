@@ -5,6 +5,10 @@ This script is mostly intended as tool for support engineers. If a user reports 
 
 The intention is not to collect as much data as possible but collect what is helpful in most cases and providing an overview whithout drowning support in too much data.
 
+**Please note:** Even though this script is meant to just collect really useful data, it does still collect a lot. Browse through any output before you send it so that you don't send any confidential data without noticing.
+
+**Please note as well:** The main intention of the script is to provide data *when asked for it*. While it might be helpful when working with commercial support, sending unwanted big blobs of data into community channels might lower your chances of getting help. Always try the [troubleshooting section](https://www.icinga.com/docs/icinga2/latest/doc/15-troubleshooting/) of the Icinga 2 documentation before requesting any community help. The upcoming "suggestion mode" of this script might help with troubleshooting as well.
+
 Later versions might include options to collect this "usually helpful" set of data or lots of data for deep diving (e.g. whole logfiles, etc.)
 
 ## Usage ##
