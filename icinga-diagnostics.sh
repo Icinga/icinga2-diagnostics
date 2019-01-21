@@ -249,9 +249,9 @@ doc_icingaweb2() {
         # if this is just a local git directory we'll see that in the git log
         echo "Director is a git clone with the following last commit"
         echo ""
-        # use pushd / popd to quickly change the directory - might not work on other OS'es/shells
-        pushd ${PREFIX}/usr/share/icingaweb2/modules/director/ > /dev/null && (git log -n1)
-        popd > /dev/null
+        IDPWD=$(pwd)
+        cd ${PREFIX}/usr/share/icingaweb2/modules/director/ > /dev/null && (git log -n1)
+        cd "${IDPWD}"
       else
         echo "Director is a downloaded git master with no known way of determining the version"
       fi
