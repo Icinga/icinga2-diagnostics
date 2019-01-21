@@ -158,6 +158,10 @@ doc_icinga2() {
     IFS=${SAVEIFS}
   fi
 
+  # calculating how many non-global zones have more than 2 endpoints configured
+  # result is used in anomaly-detection
+  BIGZONES=$(icinga2 object list --type zone  | grep endpoints  | grep -n -o '"' | sort | uniq -c | egrep -v ^[[:space:]]*[24] | wc -l)
+
   echo ""
   # count how often every check interval is used. This helps with getting an overview and finding misconfigurations
   # * are there lots of different intervals? -> Users might get confused
@@ -536,4 +540,9 @@ fi
 if [ ! -z "${ZOMBIES}" ]
 then
   echo "* Zombie processes found. See output for details"
+fi
+
+if [ ${BIGZONES} -gt 0 ]
+then
+  echo "* ${BIGZONES} non-global zones have more than 2 endpoints configured"
 fi
