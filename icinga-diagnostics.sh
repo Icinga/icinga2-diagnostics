@@ -162,6 +162,17 @@ doc_icinga2() {
   # result is used in anomaly-detection
   BIGZONES=$(icinga2 object list --type zone  | grep endpoints  | grep -n -o '"' | sort | uniq -c | egrep -v ^[[:space:]]*[24] | wc -l)
 
+  # check if hostname is endpointname
+  # it's perfectly ok to use different ones but since it's best practice to have them identical
+  # we should check that
+
+  if [ "$(icinga2 variable get NodeName)" = "$(hostname -f)" ]
+  then
+    ENDPOINTISNODENAME=true
+  else
+    ENDPOINTISNODENAME=false
+  fi
+
   echo ""
   # count how often every check interval is used. This helps with getting an overview and finding misconfigurations
   # * are there lots of different intervals? -> Users might get confused
@@ -545,4 +556,9 @@ fi
 if [ ${BIGZONES} -gt 0 ]
 then
   echo "* ${BIGZONES} non-global zones have more than 2 endpoints configured"
+fi
+
+if [ ${ENDPOINTISNODENAME} = "false" ]
+then
+  echo "* Name of Endpoint object differs from hostname"
 fi
