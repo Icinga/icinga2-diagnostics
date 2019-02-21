@@ -286,6 +286,18 @@ doc_icingaweb2() {
     echo "Icinga Director is not installed or is deactivated"
   fi
 
+  # check for timezone settings in php.ini #
+
+  PHPINICOUNT=0
+  for i in $(find / -name php.ini 2>/dev/null)
+  do
+    PHPINICOUNT=$((PHPINICOUNT+1))
+    if [ -z "$(grep ^date.timezone $i)" ]
+    then
+      PHPINITIMEZONEMISSING=true
+    fi
+  done
+
 }
 
 doc_firewall() {
@@ -561,4 +573,14 @@ fi
 if [ ${ENDPOINTISNODENAME} = "false" ]
 then
   echo "* Name of Endpoint object differs from hostname"
+fi
+
+if [ ${PHPINICOUNT} -gt 1 ]
+then
+  echo "* More than one php.ini file found"
+fi
+
+if [ ${PHPINITIMEZONEMISSING} ]
+then
+  echo "* At least one php.ini file has no valid timezone setting"
 fi
