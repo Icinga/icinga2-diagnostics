@@ -23,6 +23,8 @@ UNAME_S=$(uname -s)
 # The GnuPG key used for signing packages in the Icinga repository
 ICINGAKEY="c6e319c334410682"
 
+ANOMALIESFOUND=0
+
 ## Computed variables ##
 
 if [ "$(id -u)" != "0" ]; then
@@ -553,40 +555,51 @@ echo ""
 if [ ${DIRECTOR_NO_RELEASE} ]
 then
   echo "* Director is installed but no release archive was used for installation. (Please note that it still could the code of a release)"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
 if [ ! -z "${NON_ICINGA_PACKAGES}" ]
 then
   echo "* The following packages were not signed with the Icinga GnuPG key: ${NON_ICINGA_PACKAGES}"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
 if [ ! -z "${ZOMBIES}" ]
 then
   echo "* Zombie processes found. See output for details"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
 if [ ${BIGZONES} -gt 0 ]
 then
   echo "* ${BIGZONES} non-global zones have more than 2 endpoints configured"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
 if [ ${ENDPOINTISNODENAME} = "false" ]
 then
   echo "* Name of Endpoint object differs from hostname"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
 if [ ${PHPINICOUNT} -gt 1 ]
 then
   echo "* More than one php.ini file found"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
 if [ ${PHPINITIMEZONEMISSING} ]
 then
   echo "* At least one php.ini file has no valid timezone setting"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 if [ $(which ntpstat 2>/dev/null) ]
 then
-    ntpstat >/dev/null 2&>1 || echo "* NTP is not synchronized"
+    ntpstat >/dev/null 2&>1 || ( echo "* NTP is not synchronized" ; ANOMALIESFOUND=$((${ANOMALIESFOUND}+1)) )
 else
   echo "* ntpstat is not installed - NTP status uncheckable"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
+
+echo ""
+echo "Total count of detected anomalies: ${ANOMALIESFOUND}"
