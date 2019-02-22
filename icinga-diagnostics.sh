@@ -181,7 +181,7 @@ doc_icinga2() {
   echo "Check intervals:"
   icinga2 object list --type Host | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Host/'
   icinga2 object list --type Service | grep check_interval | sort | uniq -c | sort -rn | sed 's/$/, Service/'
-  if [ "${IC2_DEBUGLOG}" ]
+  if [ "${IC2_DEBUGLOG}" = true ]
   then
     echo ""
     echo "Used commands (numbers are relative to each other, not showing configured objects):"
