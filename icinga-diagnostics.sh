@@ -584,3 +584,9 @@ if [ ${PHPINITIMEZONEMISSING} ]
 then
   echo "* At least one php.ini file has no valid timezone setting"
 fi
+if [ $(which ntpstat 2>/dev/null) ]
+then
+    ntpstat >/dev/null 2&>1 || echo "* NTP is not synchronized"
+else
+  echo "* ntpstat is not installed - NTP status uncheckable"
+fi
