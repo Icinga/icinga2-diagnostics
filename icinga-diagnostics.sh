@@ -24,6 +24,7 @@ UNAME_S=$(uname -s)
 ICINGAKEY="c6e319c334410682"
 
 ANOMALIESFOUND=0
+PHPINITIMEZONEMISSING=false
 
 ## Computed variables ##
 
@@ -595,7 +596,12 @@ then
 fi
 if [ $(which ntpstat 2>/dev/null) ]
 then
-    ntpstat >/dev/null 2&>1 || ( echo "* NTP is not synchronized" ; ANOMALIESFOUND=$((${ANOMALIESFOUND}+1)) )
+  ntpstat >/dev/null 2&>1
+  if [ $? -gt 0 ]
+  then
+    echo "* NTP is not synchronized"
+    ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
+  fi
 else
   echo "* ntpstat is not installed - NTP status uncheckable"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
