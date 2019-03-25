@@ -571,19 +571,19 @@ then
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
-if [ ${BIGZONES} -gt 0 ]
+if [ $[${BIGZONES}+0] -gt 0 ]
 then
   echo "* ${BIGZONES} non-global zones have more than 2 endpoints configured"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
-if [ ${ENDPOINTISNODENAME} = "false" ]
+if [ "x${ENDPOINTISNODENAME}" = "xfalse" ]
 then
   echo "* Name of Endpoint object differs from hostname"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
-if [ ${PHPINICOUNT} -gt 1 ]
+if [ $[${PHPINICOUNT}+0] -gt 1 ]
 then
   echo "* More than one php.ini file found"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
