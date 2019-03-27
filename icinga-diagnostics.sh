@@ -344,12 +344,12 @@ doc_os() {
 
   case "${UNAME_S}" in
     Linux)
-      HYPERVISOR=$(hostnamectl | grep "Virtualization:" | awk '{print $2}')
+      HYPERVISOR=$(hostnamectl 2>/dev/null | grep "Virtualization:" | awk '{print $2}')
 # If NULL
 if [ -z "${HYPERVISOR}" ]
 then
         # Try an another way
-        HYPERVISOR=$(virt-what | awk '{print $1}')
+        HYPERVISOR=$(virt-what 2>/dev/null | awk '{print $1}')
         # If NULL again
         if [ -z "${HYPERVISOR}" ]
         then
