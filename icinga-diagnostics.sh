@@ -57,11 +57,11 @@ then
   OS="${UNAME_S}"
   PREFIX="/usr/local"
   uname -srm 
-elif [ -f "/etc/SuSE-release" ]
+elif [ -f "/etc/os-release" ]
 then
   QUERYPACKAGE="rpm -q"
   OS="SuSE"
-  OSVERSION="${OS} $(cat /etc/SuSE-release)"
+  OSVERSION="$(cat /etc/os-release | grep -e '^NAME' -e '^VERSION\b'| cut -d\" -f2)"
 else
   # could not use the following check because this package is optional on some distributions
   lsb_release -irs
@@ -344,47 +344,23 @@ doc_os() {
 
   case "${UNAME_S}" in
     Linux)
-      VIRT=$(bash virt-what 2>/dev/null)
-
-      if [ -z "${VIRT}" ]
-      then
-        echo "Running on hardware or unknown hypervisor"
-      else
-        if [ "$(echo ${VIRT} | awk '{print $1}')" = "xen" ]
+      HYPERVISOR=$(hostnamectl | grep "Virtualization:" | awk '{print $2}')
+# If NULL
+if [ -z "${HYPERVISOR}" ]
+then
+        # Try an another way
+        HYPERVISOR=$(virt-what | awk '{print $1}')
+        # If NULL again
+        if [ -z "${HYPERVISOR}" ]
         then
-          if [ "$(echo ${VIRT} | awk '{print $2}')" = "xen-dom0" ]
-          then
-            VIRTUAL=false
-          else
-            VIRTUAL=true
-            HYPERVISOR="Xen"
-          fi
-        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "kvm" ]
-        then
-          VIRTUAL=true
-          HYPERVISOR="KVM"
-        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmware" ]
-        then
-          VIRTUAL=true
-          HYPERVISOR="VMware"
-        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "virtualbox" ]
-        then
-          # see https://github.com/Icinga/icinga2-diagnostics/issues/1 for why this still needs some tests
-          VIRTUAL=true
-          HYPERVISOR="VirtualBox"
-        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "bhyve" ]
-        then
-          VIRTUAL=true
-          HYPERVISOR="bhyve"
-        elif [ "$(echo ${VIRT} | awk '{print $1}')" = "vmm" ]
-        then
-          VIRTUAL=true
-          HYPERVISOR="vmm"
+		VIRTUAL=false
         else
-          VIRTUAL=false
+		VIRTUAL=true
         fi
+else
+	VIRTUAL=true
+fi
 
-      fi
       ;;
     FreeBSD)
       VIRT="$(sysctl -n kern.vm_guest)" 
@@ -425,7 +401,7 @@ doc_os() {
       echo -n "RAM: "
       if [ "${OS}" = "SuSE" ]
       then
-        free -g | grep ^Mem | awk '{print $2"G"}'
+        free - g | grep Mem | awk '{print $2 / 1024"MB"}'
       else
         free -h | grep ^Mem | awk '{print $2}'
       fi
@@ -571,19 +547,19 @@ then
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
-if [ ${BIGZONES} -gt 0 ]
+if [ $[${BIGZONES}+0] -gt 0 ]
 then
   echo "* ${BIGZONES} non-global zones have more than 2 endpoints configured"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
-if [ ${ENDPOINTISNODENAME} = "false" ]
+if [ "x${ENDPOINTISNODENAME}" = "xfalse" ]
 then
   echo "* Name of Endpoint object differs from hostname"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
-if [ ${PHPINICOUNT} -gt 1 ]
+if [ $[${PHPINICOUNT}+0] -gt 1 ]
 then
   echo "* More than one php.ini file found"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
