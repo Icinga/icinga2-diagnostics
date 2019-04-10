@@ -471,9 +471,26 @@ create_tarball() {
   fi
   icinga2 --version > ${OUTPUTDIR}/icinga2_version
   # create tarball of all collected data
-  cd ${OUTPUTDIR} && tar -cjf /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2 * 2>/dev/null
-  chmod 0600 /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2
-  echo "Your tarball is ready at: /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2"
+  if [ $(which bzip2 2>/dev/null) ]
+  then
+    cd ${OUTPUTDIR} && tar -cjf /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2 * 2>/dev/null
+    chmod 0600 /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2
+    if [ -s /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2 ]
+    then
+      echo "Your tarball is ready at: /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.bz2"
+    else
+      echo "Something went wrong with creating the tarball. Size of file is zero."
+    fi
+  else
+    cd ${OUTPUTDIR} && tar -czf /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.gz * 2>/dev/null
+    chmod 0600 /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.gz
+    if [ -s /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.gz ]
+    then
+      echo "Your tarball is ready at: /tmp/icinga-diagnostics_$(hostname)_${TIMESTAMP}.tar.gz"
+    else
+      echo "Something went wrong with creating the tarball. Size of file is zero."
+    fi
+  fi
   exit 0
 }
 
