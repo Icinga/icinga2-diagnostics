@@ -589,7 +589,7 @@ then
 fi
 if [ $(which ntpstat 2>/dev/null) ]
 then
-  ntpstat >/dev/null 2&>1
+  ntpstat >/dev/null 2>&1
   if [ $? -gt 0 ]
   then
     echo "* NTP is not synchronized"
