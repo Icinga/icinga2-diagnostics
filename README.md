@@ -50,6 +50,8 @@ In the folder `debug-configuration` you find a sample configuration file you can
 
 This is especially helpful if you have problems with finding the reason why a specific check is not able to be executed. A common situation is that you can run a check as `root` or `icinga` user via shell but the Icinga daemon can't.
 
+This configuration is not intended to be running all the time. Just copy it into to zone you want to debug and when you're finished, remove it from Icinga.
+
 ## Currently supported systems ##
 
 The script currently works on the following operating systems:
