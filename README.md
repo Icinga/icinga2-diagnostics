@@ -44,6 +44,12 @@ The script will thell you where you can find your tarball when it's finished. Yo
 
 `gdb` Output is only useful for debugging problems in the Icinga 2 binary, not for configuration problems. For `gdb` to work you have to install `gdb` and the "degbugging symbols" for all the programs you want to have their information added. e.g. for Icinga 2 the corresponding package is `icinga2-debuginfo` on RedHat/CentOS or `icinga2-dbg` on Debian or Ubuntu. In addition you will need the `icinga-gdb` file containing the `gdb` commands in the directory where icinga2-diagnostics resides.
 
+## Icinga 2 configuration ##
+
+In the folder `debug-configuration` you find a sample configuration file you can place in a zone where you have problems with executing checks with Icinga. This will create some services that check for the presence of some script interpreters including version and include paths on the host. You will get extra services showing you the user and other data about this specific host.
+
+This is especially helpful if you have problems with finding the reason why a specific check is not able to be executed. A common situation is that you can run a check as `root` or `icinga` user via shell but the Icinga daemon can't.
+
 ## Currently supported systems ##
 
 The script currently works on the following operating systems:
