@@ -445,6 +445,9 @@ fi
   #audit2allow -li /var/log/audit/audit.log
 
   doc_firewall
+  echo -n "OpenSSL Version $(which openssl): "
+  openssl version
+
 }
 
 create_tarball() {
