@@ -24,6 +24,7 @@ UNAME_S=$(uname -s)
 ICINGAKEY="c6e319c334410682"
 
 ANOMALIESFOUND=0
+SYNCEDZONES=0
 PHPINITIMEZONEMISSING=false
 
 ## Computed variables ##
@@ -160,6 +161,21 @@ doc_icinga2() {
     done
     IFS=${SAVEIFS}
   fi
+  echo ""
+
+  while read -d';' -r line
+  do
+    ZONENAME=$(echo ${line} | cut -d\' -f2)
+    ZONEPATH=$(echo ${line} | cut -d\' -f6)
+    if [ "$( echo ${ZONEPATH} | grep 'zones.d' )" ]
+    then
+      if [ -d "/etc/icinga2/zones.d/${ZONENAME}" > /dev/null 2>&1 ]
+      then
+        echo "Zone ${ZONENAME} might be configured wrong. See anomalies section for details"
+        SYNCEDZONES=$((SYNCEDZONES+1))
+      fi
+    fi
+  done <<< $(icinga2 object list | egrep -A1 '^Object.* of type .Zone' | tr -d '\n' | sed 's/--/;/g')
 
   # calculating how many non-global zones have more than 2 endpoints configured
   # result is used in anomaly-detection
@@ -600,6 +616,12 @@ then
   fi
 else
   echo "* ntpstat is not installed - NTP status uncheckable"
+  ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
+fi
+
+if [ ${SYNCEDZONES} -gt 0 ]
+then
+  echo "* Zone objects of non-command_endpoints being synced: ${SYNCEDZONES}. Please refer to https://github.com/Icinga/icinga2/issues/7530"
   ANOMALIESFOUND=$((${ANOMALIESFOUND}+1))
 fi
 
