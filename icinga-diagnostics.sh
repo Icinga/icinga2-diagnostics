@@ -174,6 +174,13 @@ doc_icinga2() {
         echo "Zone ${ZONENAME} might be configured wrong. See anomalies section for details"
         SYNCEDZONES=$((SYNCEDZONES+1))
       fi
+      for i in $(ls /var/lib/icinga2/api/packages/); do
+        if [ -d "/var/lib/icinga2/api/packages/$i/$(cat /var/lib/icinga2/api/packages/$i/active-stage)/zones.d/${ZONENAME}" > /dev/null 2>&1 ]
+        then
+          echo "Zone ${ZONENAME} in package ${i} might be configured wrong. See anomalies section for details"
+          SYNCEDZONES=$((SYNCEDZONES+1))
+        fi
+      done
     fi
   done <<< $(icinga2 object list | egrep -A1 '^Object.* of type .Zone' | tr -d '\n' | sed 's/--/;/g')
 
