@@ -46,9 +46,12 @@ class Oshost:
 class Icingainstance:
     def __init__(self):
         try:
-            self.version = str(subprocess.check_output(["rpm","-q","icinga2"]))
+            versionoutput = subprocess.check_output(["icinga2","--version"]).splitlines()
+            for line in versionoutput:
+                if "Icinga 2 network monitoring daemon" in line:
+                    self.version = str(line.split(':')[1].split('-')[0])
         except: 
-            print("Icinga 2 is not installed")
+            self.version = "Not installed"
 
 # print header
 
@@ -86,7 +89,4 @@ print("""
 
 icingacore = Icingainstance()
 
-try:
-    print("Icinga 2: " + icingacore.version)
-except AttributeError:
-    print("Icinga2 not installed")
+print("Icinga 2: " + icingacore.version)
