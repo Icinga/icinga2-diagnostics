@@ -29,12 +29,26 @@ class Oshost:
                 for line in hostnamectl_output:
                     if "Operating System" in line:
                         self.distro = str(line.split(':')[1])
+                    elif "Virtualization" in line:
+                        self.virt = str(line.split(':')[1])
+                if hasattr('self','virt') == False:
+                    self.virt = "None"
             except AttributeError:
                 self.distro = platform.linux_distribution()[0] + " " + platform.linux_distribution()[1]
+                try:
+                    self.virt = str(subprocess.check_output(["virt-what"]))
+                except:
+                    self.virt = "Not determinable. Not running as root?"
         self.pythonversion = sys.version.split('\n')[0]
         self.cpucores = multiprocessing.cpu_count()
         self.memory = (os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'))//(1024.**3)
 
+class Icingainstance:
+    def __init__(self):
+        try:
+            self.version = str(subprocess.check_output(["rpm","-q","icinga2"]))
+        except: 
+            print("Icinga 2 is not installed")
 
 # print header
 
@@ -61,7 +75,18 @@ if icingahost.os != "Linux":
     print("OS: " + icingahost.os)
 else:
     print("OS: " + icingahost.distro)
+print("Virtualisation: " + icingahost.virt)
 print("Python: " + icingahost.pythonversion)
 print("CPU cores: " + str(icingahost.cpucores))
 print("RAM: " + str(icingahost.memory) + " Gi")
 
+print("""
+### Icinga 2 ###
+""")
+
+icingacore = Icingainstance()
+
+try:
+    print("Icinga 2: " + icingacore.version)
+except AttributeError:
+    print("Icinga2 not installed")
