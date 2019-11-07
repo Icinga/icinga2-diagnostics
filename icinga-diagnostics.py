@@ -13,9 +13,25 @@ import getpass
 import platform
 import sys
 import multiprocessing
+import subprocess
 
 version="0.2.0"
 timestamp=datetime.now()
+
+class Oshost:
+    def __init__(self):
+        self.os = platform.system()
+        if self.os != "Linux":
+            self.distro = "n/a"
+        else:
+            hostnamectl_output = str(subprocess.check_output(["hostnamectl"])).splitlines()
+            for line in hostnamectl_output:
+                if "Operating System" in line:
+                    self.distro = line.split(':')[1]
+        self.pythonversion = sys.version.split('\n')[0]
+        self.cpucores = multiprocessing.cpu_count()
+        self.memory = (os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'))//(1024.**3)
+
 
 # print header
 
@@ -33,25 +49,16 @@ if str(getpass.getuser()) != "root":
 
 ### OS information ###
 
+icingahost = Oshost()
+
 print("""### OS ###
         """)
 
-# try to figure out which os we are running on
-
-## The old way
-#if os.path.isfile("/etc/redhat-release"):
-#    print("OS Version: " + )
-#    isredhat = True
-
-os_system = platform.system()
-
-if os_system != "Linux":
-    print("OS: " + os_system)
+if icingahost.os != "Linux":
+    print("OS: " + icingahost.os)
 else:
-    print("OS: " + platform.linux_distribution()[0] + " " + platform.linux_distribution()[1])
-print("Python: " + sys.version.split('\n')[0])
-print("CPU cores: " + str(multiprocessing.cpu_count()))
-print("RAM: " + str((os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'))//(1024.**3)) + " Gi")
-#import subprocess
-#subprocess.call(["ls", "-l"])
+    print("OS: " + icingahost.distro)
+print("Python: " + icingahost.pythonversion)
+print("CPU cores: " + str(icingahost.cpucores))
+print("RAM: " + str(icingahost.memory) + " Gi")
 
