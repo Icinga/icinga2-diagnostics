@@ -24,10 +24,13 @@ class Oshost:
         if self.os != "Linux":
             self.distro = "n/a"
         else:
-            hostnamectl_output = str(subprocess.check_output(["hostnamectl"])).splitlines()
-            for line in hostnamectl_output:
-                if "Operating System" in line:
-                    self.distro = line.split(':')[1]
+            try:
+                hostnamectl_output = str(subprocess.check_output(["hostnamectl"])).splitlines()
+                for line in hostnamectl_output:
+                    if "Operating System" in line:
+                        self.distro = str(line.split(':')[1])
+            except AttributeError:
+                self.distro = platform.linux_distribution()[0] + " " + platform.linux_distribution()[1]
         self.pythonversion = sys.version.split('\n')[0]
         self.cpucores = multiprocessing.cpu_count()
         self.memory = (os.sysconf('SC_PAGE_SIZE') * os.sysconf('SC_PHYS_PAGES'))//(1024.**3)
