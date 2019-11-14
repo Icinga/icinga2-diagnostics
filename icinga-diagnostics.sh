@@ -308,6 +308,10 @@ doc_icingaweb2() {
         echo "Director was installed by downloading a release archive"
       fi
     fi 
+    echo ""
+    icingacli director health
+    echo ""
+
   else
     echo "Icinga Director is not installed or is deactivated"
   fi
