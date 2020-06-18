@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Icinga Diagnostics
 # Collect basic data about your Icinga 2 installation
 # maintainer: Thomas Widhalm <thomas.widhalm@icinga.com>
@@ -47,11 +47,15 @@ then
   QUERYPACKAGE="rpm -q"
   OS="REDHAT"
   OSVERSION="$(cat /etc/redhat-release)"
+# Debian-Versions
 elif [ -f "/etc/debian_version" ]
 then
   QUERYPACKAGE="dpkg -l"
-  OS="$(grep ^NAME /etc/os-release | cut -d\" -f2)"
+  OS="$(grep ^NAME /etc/os-release | cut -d\" -f2 | cut -b-6)"
   OSVERSION="${OS} $(cat /etc/debian_version)"
+# Ubuntu-Versions
+elif QUERYPACKAGE="dpkg -l"
+then OS="$(egrep '^(NAME|VERSION\b)' /etc/os-release | cut -d\" -f2)"
 elif [ "${UNAME_S}" = "FreeBSD" ]
 then
   QUERYPACKAGE="pkg info"
@@ -129,6 +133,15 @@ doc_icinga2() {
           NON_ICINGA_PACKAGES="${NON_ICINGA_PACKAGES} $i"
         fi
       done
+      ;;
+    Debian|Ubuntu) 
+      if [ ! ${FULL} ]
+      then  
+        echo -n "Icinga 2 "
+        dpkg -s icinga2 | egrep '^(Package|Maintainer|Version)'
+        echo ""
+        dpkg -l | grep icinga | cut -b-65 | cut -b5-
+      fi
       ;;
     FreeBSD) ${QUERYPACKAGE} -x icinga ;;
     *) echo "Can not query packages on ${OS}" ;;
