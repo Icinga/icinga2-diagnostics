@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Icinga Diagnostics
 # Collect basic data about your Icinga 2 installation
 # maintainer: Thomas Widhalm <thomas.widhalm@icinga.com>
