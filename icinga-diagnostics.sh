@@ -15,7 +15,7 @@ echo ""
 
 ## Static variables ##
 
-OPTSTR="fhtzg"
+OPTSTR="fhtzgs"
 
 TIMESTAMP=$(date +%Y%m%d)
 UNAME_S=$(uname -s)
@@ -79,6 +79,7 @@ show_help() {
   -t create a tarball instead of just printing the output
   -z list all zones in standard output (ignored in "full" mode)
   -g provide gdb output for debugging
+  -s  list all servicies which are not okay. You should give first the zones names, on which the service have to be checkecd. 
   "
   exit 0
 }
@@ -231,7 +232,27 @@ doc_icinga2() {
       echo "GDB mode requested but gdb not found"
     fi
   fi
-
+  # Checking not okay servicies on the given zones
+if [ "${SERVICES}" = true ];
+then
+echo "please give the Zones, on which the not okay services will be checked. When you are finish press 0"
+while :
+do
+	read input
+	if [ "${input}" != "0" ]
+	then
+		zones+=("${input}")
+	else break
+	fi
+done
+for zone in "${zones[@]}"
+do
+	 SERVICESFILTER=$(curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST "https://127.0.0.1:5665/v1/objects/services?filter=service.last_check_result.check_source%3D%3D%22$zone%22%26%26service.state%3E0" -d '{ "pretty": true }' | awk ' /__name/ { match($0, ": \"([^\"]+)\"", m); print m[1] }')
+	 SERVICENUMBER=$(curl -k -s -u root:icinga -H 'Accept: application/json' -H 'X-HTTP-Method-Override: GET' -X POST "https://127.0.0.1:5665/v1/objects/services?filter=service.last_check_result.check_source%3D%3D%22$zone%22%26%26service.state%3E0" -d '{ "pretty": true }' | awk ' /__name/ { match($0, ": \"([^\"]+)\"", m); print m[1] }' | wc -l)
+	 echo "********************** Not okay services on $zone are $SERVICENUMBER **********************"
+	echo "${SERVICESFILTER}"
+done
+fi
 }
 
 doc_icingaweb2() {
@@ -535,6 +556,7 @@ do
     t) create_tarball;;
     z) ZONES=true;;
     g) GDB=true;;
+    s) SERVICES=true;;
   esac
 done
 
